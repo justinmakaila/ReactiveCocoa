@@ -21,9 +21,9 @@ of a long-running operation. In any case, something generates the events and sen
 terminal events:
 
  * The `Next` event provides a new value from the source.
- * The `Error` event indicates that an error occurred before the signal could
+ * The `Failed` event indicates that an error occurred before the signal could
    finish. Events are parameterized by an `ErrorType`, which determines the kind
-   of error that’s permitted to appear in the event. If an error is not
+   of failure that’s permitted to appear in the event. If a failure is not
    permitted, the event can use type `NoError` to prevent any from being
    provided.
  * The `Completed` event indicates that the signal finished successfully, and
@@ -53,11 +53,9 @@ Signals can be manipulated by applying [primitives][BasicOperators] to them.
 Typical primitives to manipulate a single signal like `filter`, `map` and
 `reduce` are available, as well as primitives to manipulate multiple signals
 at once (`zip`). Primitives operate only on the `Next` events of a signal.
-The `|>` operator is used to apply primitives to a signal. It can also be used
-to compose basic primitives into more complex ones.
 
 The lifetime of a signal consists of any number of `Next` events, followed by
-one terminating event, which may be any one of `Error`, `Completed`, or
+one terminating event, which may be any one of `Failed`, `Completed`, or
 `Interrupted` (but not a combination).
 Terminating events are not included in the signal’s values—they must be
 handled specially.
@@ -72,7 +70,7 @@ The signal can be controlled by sending events to the observer. This
 can be extremely useful for bridging non-RAC code into the world of signals.
 
 For example, instead of handling application logic in block callbacks, the
-blocks can simply send events to the observer instead. Meanwhile, the signal
+blocks can simply send events to the observer. Meanwhile, the signal
 can be returned, hiding the implementation detail of the callbacks.
 
 ## Signal Producers
@@ -98,7 +96,7 @@ interrupt/cancel the work associated with the produced signal.
 Just like signals, signal producers can also be manipulated via primitives
 like `map`, `filter`, etc.
 Every signal primitive can be “lifted” to operate upon signal producers instead,
-using the `lift` method, or implicitly through the `|>` operator.
+using the `lift` method.
 Furthermore, there are additional primitives that control _when_ and _how_ work
 is started—for example, `times`.
 
@@ -117,8 +115,7 @@ dropped to make room for it.
 
 An **observer** is anything that is waiting or capable of waiting for [events](#events)
 from a [signal](#signals). Within RAC, an observer is represented as
-a [`SinkType`](http://swiftdoc.org/protocol/SinkType/) that accepts
-[`Event`][Event] values.
+an [`Observer`][Observer] that accepts [`Event`][Event] values.
 
 Observers can be implicitly created by using the callback-based versions of the
 `Signal.observe` or `SignalProducer.start` methods.
@@ -126,8 +123,8 @@ Observers can be implicitly created by using the callback-based versions of the
 ## Actions
 
 An **action**, represented by the [`Action`][Action] type, will do some work when
-executed with an input. While executing, zero or more output values and/or an
-error may be generated.
+executed with an input. While executing, zero or more output values and/or a
+failure may be generated.
 
 Actions are useful for performing side-effecting work upon user interaction, like when a button is
 clicked. Actions can also be automatically disabled based on a [property](#properties), and this
@@ -165,7 +162,7 @@ whenever possible!
 
 ## Disposables
 
-A **disposable**, represented by the [`Disposable`][Disposable] protocol, is a a mechanism
+A **disposable**, represented by the [`Disposable`][Disposable] protocol, is a mechanism
 for memory management and cancellation.
 
 When starting a [signal producer](#signal-producers), a disposable will be returned.
@@ -200,15 +197,14 @@ do not allow tasks to be reordered or depend on one another.
 
 
 [Design Guidelines]: DesignGuidelines.md
-[Memory Management]: MemoryManagement.md
 [BasicOperators]: BasicOperators.md
 [README]: ../README.md
 [Signal]: ../ReactiveCocoa/Swift/Signal.swift
 [SignalProducer]: ../ReactiveCocoa/Swift/SignalProducer.swift
 [Action]: ../ReactiveCocoa/Swift/Action.swift
-[CocoaAction]: ../ReactiveCocoa/Swift/Action.swift
+[CocoaAction]: ../ReactiveCocoa/Swift/CocoaAction.swift
 [Disposable]: ../ReactiveCocoa/Swift/Disposable.swift
 [Scheduler]: ../ReactiveCocoa/Swift/Scheduler.swift
 [Property]: ../ReactiveCocoa/Swift/Property.swift
 [Event]: ../ReactiveCocoa/Swift/Event.swift
-[SinkOf]: http://swiftdoc.org/type/SinkOf/
+[Observer]: ../ReactiveCocoa/Swift/Observer.swift
