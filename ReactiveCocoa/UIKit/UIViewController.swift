@@ -14,29 +14,29 @@ extension UIViewController {
 	/// Returns a `Signal`, that will be triggered
 	/// when `self`'s `viewDidDisappear` is called
 	public var rac_viewDidDisappear: Signal<(), NoError> {
-		return signal(for: #selector(UIViewController.viewDidDisappear(_:)))
+		return trigger(for: #selector(UIViewController.viewDidDisappear(_:)))
 	}
 
 	/// Returns a `Signal`, that will be triggered
 	/// when `self`'s `viewWillDisappear` is called
 	public var rac_viewWillDisappear: Signal<(), NoError> {
-		return signal(for: #selector(UIViewController.viewWillDisappear(_:)))
+		return trigger(for: #selector(UIViewController.viewWillDisappear(_:)))
 	}
 
 	/// Returns a `Signal`, that will be triggered
 	/// when `self`'s `viewDidAppear` is called
 	public var rac_viewDidAppear: Signal<(), NoError> {
-		return signal(for: #selector(UIViewController.viewDidAppear(_:)))
+		return trigger(for: #selector(UIViewController.viewDidAppear(_:)))
 	}
 
 	/// Returns a `Signal`, that will be triggered
 	/// when `self`'s `viewWillAppear` is called
 	public var rac_viewWillAppear: Signal<(), NoError> {
-		return signal(for: #selector(UIViewController.viewWillAppear(_:)))
+		return trigger(for: #selector(UIViewController.viewWillAppear(_:)))
 	}
 
 	public typealias DismissingCompletion = ((Void) -> Void)?
-	public typealias DismissingInformation = (animated: Bool, completion: DismissingCompletion)?
+	public typealias DismissingInformation = (animated: Bool, completion: DismissingCompletion)
 
 	/// Wraps a viewController's `dismissViewControllerAnimated` function in a bindable property.
 	/// It mimics the same input as `dismissViewControllerAnimated`: a `Bool` flag for the animation
@@ -48,22 +48,9 @@ extension UIViewController {
 	/// ```
 	/// The dismissal observation can be made either with binding (example above)
 	/// or `viewController.dismissViewControllerAnimated(true, completion: nil)`
-	public var rac_dismissAnimated: MutableProperty<DismissingInformation> {
-
-		let initial: (UIViewController) -> DismissingInformation = { _ in nil }
-		let setter: (UIViewController, DismissingInformation) -> Void = { host, dismissingInfo in
-
-			guard let unwrapped = dismissingInfo else { return }
-			host.dismiss(animated: unwrapped.animated, completion: unwrapped.completion)
-		}
-
-		let property = associatedProperty(self, key: &dismissModally, initial: initial, setter: setter) { property in
-			property <~ self.signal(for: #selector(UIViewController.dismiss))
-				.take { _ in property.value != nil }
-				.map { _ in return nil }
-		}
-
-		return property
+	public var rac_dismissAnimated: BindingTarget<DismissingInformation> {
+		/// TODO: Convert into `Action`?
+		return bindingTarget { $0.dismiss(animated: $1.animated, completion: $1.completion) }
 	}
 }
 
